@@ -29,3 +29,96 @@ semiconductor sector rotation.
 ## Current Status
 
 🚧 Project in progress
+
+STEP 01 Business Question             ✅  (Day-1)  
+STEP 02 Data Source Design            ✅
+STEP 03 GitHub Setup                  ✅  (Day-2)
+STEP 04 Python Environment            ✅
+STEP 05 API Authentication            ✅  (Day-3)
+STEP 06 Samsung Daily Price API TEST  ✅  (Day-4)
+STEP 07 Pandas Transformation         ⬜ 
+STEP 08 Data Validation               ⬜
+STEP 09 SQL Server                    ⬜
+STEP 10 SQL Analysis                  ⬜
+STEP 11 Power BI                      ⬜
+STEP 12 Investment Insight            ⬜
+
+
+### Day 01 — Project Planning
+
+**Completed**
+- Defined the core business question for the project.
+- Established the research focus on semiconductor sector rotation in Korea.
+- Defined the hypothesis that market momentum may have expanded from memory semiconductors toward semiconductor equipment, materials, and components since July 2026.
+- Defined the initial analysis scope, including KOSPI, KOSDAQ, individual semiconductor companies, investor flows, and ETF data.
+- Designed the overall end-to-end data pipeline from data collection to Power BI analysis.
+
+**Key Learning**
+- Learned how to define a financial data project around a business question rather than starting with a visualization.
+- Learned how to separate a research hypothesis from an analytical conclusion.
+
+**Next Step**
+- Identify reliable financial data sources and define how each source will be used.
+
+
+### Day 02 — Data Source & GitHub Setup
+
+**Completed**
+- Selected KIS Open API as the primary source for Korean stock market data.
+- Reviewed OpenDART as a potential source for company financial fundamentals.
+- Defined the initial data categories required for the analysis, including stock prices, trading activity, investor flows, ETF data, and company fundamentals.
+- Created the GitHub repository for the project.
+- Created the initial project documentation structure.
+- Added project planning, data source, data dictionary, data model, and methodology documentation.
+
+**Key Learning**
+- Learned how to select financial data sources based on data availability, reliability, and analytical requirements.
+- Learned how GitHub can be used to document both the development process and the final analytical result.
+- Learned the importance of defining data structure before starting data collection.
+
+**Next Step**
+- Set up the Python environment and prepare the API authentication process.
+
+### Day 03 — Python Environment & KIS API Authentication
+
+**Completed**
+- Created a Python virtual environment for the project.
+- Installed the required Python packages, including `requests`, `python-dotenv`, and `pandas`.
+- Created a `.env` file for storing API credentials locally.
+- Configured the KIS API App Key and App Secret as environment variables.
+- Implemented the KIS Open API access token request.
+- Successfully received an access token from the KIS production API.
+- Added the API authentication test script to the GitHub repository.
+
+**Key Learning**
+- Learned how to create and manage an isolated Python environment using `venv`.
+- Learned how to use environment variables to keep API credentials separate from source code.
+- Learned the basic authentication flow required to access a financial REST API.
+- Learned why API credentials should not be hard-coded or committed to GitHub.
+
+**Next Step**
+- Use the authenticated API connection to retrieve actual Korean stock market data.
+
+### Day 04 — KIS API Connectivity Test
+
+**Completed**
+- Connected Python to the KIS Open API using the issued access token.
+- Selected Samsung Electronics (005930) as the first test stock.
+- Configured the KIS daily stock price API endpoint.
+- Sent the required API headers and query parameters from Python.
+- Successfully retrieved Samsung Electronics daily price data.
+- Received and parsed the API response as JSON.
+- Verified the API response code and message.
+- Confirmed that the API returned daily market data successfully.
+- Verified the end-to-end connection from Python to the KIS market data API.
+
+**Key Learning**
+- Learned how to send authenticated REST API requests using Python.
+- Learned how API endpoints, headers, query parameters, and response data work together.
+- Learned how to inspect and validate JSON responses from a financial data API.
+- Confirmed that the KIS API connection is ready for the next ETL stage.
+
+**Next Step**
+- Transform the KIS API JSON response into a standardized Pandas DataFrame.
+- Standardize column names and data types.
+- Prepare the data for cleaning and validation.
