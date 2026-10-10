@@ -122,3 +122,31 @@ STEP 12 Investment Insight            ⬜
 - Transform the KIS API JSON response into a standardized Pandas DataFrame.
 - Standardize column names and data types.
 - Prepare the data for cleaning and validation.
+
+### Day 05 — Pandas Data Transformation
+
+**Completed**
+- Created a dedicated Python script for collecting market data.
+- Loaded API credentials and configuration from environment variables.
+- Retrieved Samsung Electronics daily stock price data through the KIS Open API.
+- Converted the JSON response into a Pandas DataFrame.
+- Renamed API fields to standardized English column names.
+- Converted the trading date and numeric fields to appropriate data types.
+- Selected the required analytical columns.
+- Sorted records by trading date in ascending order.
+- Added the stock ticker to identify the company in the dataset.
+- Verified the resulting DataFrame and its data types.
+
+**Key Learning**
+- Learned how to transform API responses into structured tabular data.
+- Learned how to standardize column names and data types using Pandas.
+- Learned how sorting and selecting columns prepare data for downstream analysis.
+- Completed the initial data collection and transformation workflow for a financial data pipeline.
+
+**Why It Matters**
+- A standardized dataset is easier to validate, store in SQL Server, and analyze in Power BI.
+- This workflow establishes the foundation for expanding the pipeline to additional stocks and market data.
+
+**Next Step**
+- Validate the collected data for missing values, duplicate records, invalid prices, and other data quality issues.
+
