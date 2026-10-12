@@ -36,8 +36,8 @@ STEP 03 GitHub Setup                  ✅  (Day-2)
 STEP 04 Python Environment            ✅
 STEP 05 API Authentication            ✅  (Day-3)
 STEP 06 Samsung Daily Price API TEST  ✅  (Day-4)
-STEP 07 Pandas Transformation         ⬜ 
-STEP 08 Data Validation               ⬜
+STEP 07 Pandas Transformation         ✅  (Day-5)
+STEP 08 Data Validation               ✅  (Day-6)
 STEP 09 SQL Server                    ⬜
 STEP 10 SQL Analysis                  ⬜
 STEP 11 Power BI                      ⬜
@@ -150,3 +150,22 @@ STEP 12 Investment Insight            ⬜
 **Next Step**
 - Validate the collected data for missing values, duplicate records, invalid prices, and other data quality issues.
 
+### Day 06 — Data Validation: Basic Quality Checks 
+
+**What I Did**
+- Checked for missing values. (결측값 확인)
+- Checked for duplicate trading dates. (중복 거래일 확인)
+- Validated closing prices and trading volumes. (거래량이 0 이하인 종가 확인 / 음수 거래량 확인)
+- Checked the relationship between high and low prices. (고가와 저가의 관계 확인)
+
+**Techniques Used**
+- Pandas `isnull()`
+- Pandas `duplicated()`
+- Boolean conditions and `sum()`
+
+**Key Learning**
+- Data validation helps identify missing, duplicated, and logically invalid records before analysis.
+- A result of zero means no records matched the specific validation condition.
+
+**Next Step**
+- Complete data validation and prepare the cleaned data for SQL Server.
