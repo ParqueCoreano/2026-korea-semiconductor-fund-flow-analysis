@@ -37,7 +37,7 @@ STEP 04 Python Environment            ✅
 STEP 05 API Authentication            ✅  (Day-3)
 STEP 06 Samsung Daily Price API TEST  ✅  (Day-4)
 STEP 07 Pandas Transformation         ✅  (Day-5)
-STEP 08 Data Validation               ✅  (Day-6)
+STEP 08 Data Validation               ✅  (Day-6 / 7)
 STEP 09 SQL Server                    ⬜
 STEP 10 SQL Analysis                  ⬜
 STEP 11 Power BI                      ⬜
@@ -169,3 +169,55 @@ STEP 12 Investment Insight            ⬜
 
 **Next Step**
 - Complete data validation and prepare the cleaned data for SQL Server.
+
+### Day 07 — Data Validation: Automated Quality Checks
+
+**What I Did**
+- Checked for missing values and duplicate trading dates.
+- Validated closing prices, trading volumes, and high-low price relationships.
+- Implemented conditional logic using `if` and `else` to automatically report missing values.
+- Executed the validation checks and reviewed the results.
+
+**Techniques Used**
+- Pandas `isnull()` and `duplicated()`
+- Boolean conditions and `sum()`
+- Python conditional statements (`if` / `else`)
+
+**Key Learning**
+- Data validation helps identify missing, duplicated, and logically invalid records before analysis.
+- Conditional statements allow Python to evaluate validation results automatically.
+- Passing basic validation checks does not guarantee that all data is accurate.
+
+**Validation Results**
+- Missing values: None found
+- Duplicate trading dates: 0
+- Invalid closing prices: 0
+- Negative trading volumes: 0
+- Invalid high-low price relationships: 0
+
+**Next Step**
+- Set up SQL Server and prepare a database table for the cleaned market data.
+
+---
+
+### Day 08 — SQL Server: Database Setup (Planned)
+
+**Objective**
+Prepare a SQL Server database to store and query the cleaned market data collected through Python.
+
+**Planned Tasks**
+- Check SQL Server installation and connectivity.
+- Create a project database.
+- Design a table for daily stock prices.
+- Define appropriate column names and data types.
+- Prepare to load the cleaned Pandas DataFrame into SQL Server.
+
+**Expected Outcome**
+A database structure ready to store daily stock price data and support SQL-based analysis.
+
+**Technologies**
+- Microsoft SQL Server
+- SQL
+- Python and Pandas
+
+**Status:** Planned
