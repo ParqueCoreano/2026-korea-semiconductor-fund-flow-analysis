@@ -174,9 +174,12 @@ print("\nData types:")
 print(df.dtypes)
 
 # Check for missing values (결측값 확인)
-print("\nMissing values:")
-print(df.isnull().sum())
-print("\nTransformation completed (전송완료).")
+missing_count = df.isnull().sum().sum()
+
+if missing_count > 0:
+    print("Missing values found! (결측값 있음)")
+else:
+    print("No missing values. (결측값 없음)")
 
 # Check for duplicate trading dates (중복일자 확인)
 print("\nDuplicate trading dates (중복일자):")
