@@ -38,8 +38,8 @@ STEP 05 API Authentication            ✅  (Day-3)
 STEP 06 Samsung Daily Price API TEST  ✅  (Day-4)
 STEP 07 Pandas Transformation         ✅  (Day-5)
 STEP 08 Data Validation               ✅  (Day-6 / 7)
-STEP 09 SQL Server                    ⬜
-STEP 10 SQL Analysis                  ⬜
+STEP 09 SQL Server                    ✅  (Day-8)
+STEP 10 SQL Analysis                  ✅  (Day-8)
 STEP 11 Power BI                      ⬜
 STEP 12 Investment Insight            ⬜
 
@@ -200,24 +200,44 @@ STEP 12 Investment Insight            ⬜
 
 ---
 
-### Day 08 — SQL Server: Database Setup (Planned)
+### Day 08 — SQL Server Integration and SQL Analysis
 
 **Objective**
-Prepare a SQL Server database to store and query the cleaned market data collected through Python.
 
-**Planned Tasks**
-- Check SQL Server installation and connectivity.
-- Create a project database.
-- Design a table for daily stock prices.
-- Define appropriate column names and data types.
-- Prepare to load the cleaned Pandas DataFrame into SQL Server.
+Set up SQL Server, connect Python to the database, store cleaned stock market data, and begin analyzing stock price movements using SQL.
 
-**Expected Outcome**
-A database structure ready to store daily stock price data and support SQL-based analysis.
+**Completed Tasks**
+
+- Connected to SQL Server Express using Windows Authentication.
+- Created the `Finance_dataflow` database and the `daily_stock_prices` table with appropriate column names, data types, and a composite primary key (`stock_code`, `trade_date`).
+- Connected Python to SQL Server using `pyodbc` and inserted cleaned Samsung Electronics daily stock data from a Pandas DataFrame.
+- Verified inserted records using `SELECT`, filtered data using `WHERE`, and sorted results by trading date using `ORDER BY`.
+- Used `LAG()` with `OVER (ORDER BY trade_date)` to retrieve the previous trading day's closing price.
+- Calculated daily price changes by subtracting the previous closing price from the current closing price.
+- Calculated percentage returns using arithmetic expressions, `NULLIF()` to prevent division by zero, and `ROUND()` to round results to two decimal places.
+- Used a Common Table Expression (CTE) with `WITH` to organize intermediate query results and reuse them in subsequent calculations.
+- Practiced `CAST()` to convert numeric data types for average calculations and explored `DECIMAL` for controlled numeric precision.
+- Used aggregate functions to summarize stock data: `COUNT(*)` for row counts, `AVG()` for average prices and volume, `MAX()` and `MIN()` for price extremes, and `SUM()` for total trading volume and trading value.
+- Compared `COUNT(*)` with `COUNT(DISTINCT trade_date)` to understand the difference between counting rows and counting unique trading dates.
+
+**Key Learnings**
+- Connected a Python data collection pipeline to a relational database.
+- Learned how to query and validate stored financial data.
+- Used window functions to compare current and previous stock prices.
+- Learned how aggregate functions summarize trading activity and price data.
+
+**Outcome**
+
+Successfully connected Python to SQL Server, stored cleaned stock market data, and began SQL-based analysis of stock prices and trading activity.
 
 **Technologies**
-- Microsoft SQL Server
+- Python
+- Pandas
+- pyodbc
+- Microsoft SQL Server Express
+- SQL Server Management Studio (SSMS)
 - SQL
-- Python and Pandas
 
-**Status:** Planned
+**Status:** Completed
+
+**Next Step:** Continue SQL analysis and prepare the dataset for Power BI visualization.
