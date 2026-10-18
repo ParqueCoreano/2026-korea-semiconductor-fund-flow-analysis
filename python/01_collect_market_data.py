@@ -4,6 +4,7 @@ import os
 import requests
 import pandas as pd
 from dotenv import load_dotenv
+from datetime import datetime       #오늘 날짜를 자동으로 가져오는 데 사용
 
 # Load environment variables from .env
 load_dotenv()
@@ -11,6 +12,17 @@ load_dotenv()
 # Read KIS API credentials
 APP_KEY = os.getenv("KIS_APP_KEY")
 APP_SECRET = os.getenv("KIS_APP_SECRET")
+
+print("APP_KEY loaded:", bool(APP_KEY))
+print("APP_SECRET loaded:", bool(APP_SECRET))
+print(
+    "APP_KEY has surrounding whitespace:",
+    APP_KEY != APP_KEY.strip() if APP_KEY else "empty"
+)
+print(
+    "APP_SECRET has surrounding whitespace:",
+    APP_SECRET != APP_SECRET.strip() if APP_SECRET else "empty"
+)
 
 # Read the API base URL
 BASE_URL = os.getenv(
@@ -43,7 +55,7 @@ token_response = requests.post(
 )
 
 print("Token HTTP Status:", token_response.status_code)
-print("Token response:", token_response.text[:1000])
+print("Token response received.")
 
 token_response.raise_for_status()
 token_data = token_response.json()
@@ -71,11 +83,14 @@ headers = {
 params = {
     "FID_COND_MRKT_DIV_CODE": "J",
     "FID_INPUT_ISCD": stock_code,
-    "FID_INPUT_DATE_1": "20261001",
-    "FID_INPUT_DATE_2": "20261007",
+    "FID_INPUT_DATE_1": "20261001",     
+    "FID_INPUT_DATE_2": datetime.now().strftime("%Y%m%d"),    
     "FID_PERIOD_DIV_CODE": "D",
     "FID_ORG_ADJ_PRC": "1"
 }
+
+#시작날짜
+ #종료날짜 : 컴퓨터의 현재 날짜와 시간을 가져와서 YYYYMMDD 형식으로 변환
 
 response = requests.get(
     url,
@@ -173,24 +188,68 @@ print(df)
 print("\nData types:")
 print(df.dtypes)
 
-# Check for missing values (결측값 확인)
-missing_count = df.isnull().sum().sum()
+print("\nTransformation completed.")
 
-if missing_count > 0:
-    print("Missing values found! (결측값 있음)")
-else:
-    print("No missing values. (결측값 없음)")
+# Save cleaned data to SQL Server
+import pyodbc
 
-# Check for duplicate trading dates (중복일자 확인)
-print("\nDuplicate trading dates (중복일자):")
-print(df["trade_date"].duplicated().sum())
+server = r"DESKTOP-29RVDTS\SQLEXPRESS"
+database = "Finance_dataflow"
+driver = "{ODBC Driver 17 for SQL Server}"
 
-# Check for invalid closing prices (주가가 0이하인 비정상 종가 확인)
-print("\nInvalid closing prices (주가가 0이하인날짜비정상 종가 확인:")
-print((df["close_price"] <= 0).sum())
-# Check for invalid trading volumes (거래량이 음수인 날 확인)
-print("\nInvalid trading volumes (거래량이 음수인 날 확인):")
-print((df["volume"] < 0).sum())
-# Check for invalid high-low price relationship (고가가 저가보다 낮은 비정상 날 확인)
-print("\nInvalid high-low price relationships (고가가 저가보다 낮은 비정상 날 확인):")
-print((df["high_price"] < df["low_price"]).sum())
+connection_string = (
+    f"DRIVER={driver};"
+    f"SERVER={server};"
+    f"DATABASE={database};"
+    "Trusted_Connection=yes;"
+)
+
+conn = pyodbc.connect(connection_string)
+cursor = conn.cursor()
+
+try:
+    # Convert dates and numeric values to Python types
+    rows = []
+    for row in df.itertuples(index=False):
+        rows.append((
+            row.trade_date.date(),
+            str(row.stock_code),
+            int(row.open_price),
+            int(row.high_price),
+            int(row.low_price),
+            int(row.close_price),
+            int(row.volume),
+            int(row.trading_value)
+        ))
+
+    # Replace existing records for the same stock and date
+    for row in rows:
+        cursor.execute(
+            """
+            DELETE FROM dbo.daily_stock_prices
+            WHERE stock_code = ? AND trade_date = ?
+            """,
+            row[1], row[0]
+        )
+
+    cursor.executemany(
+        """
+        INSERT INTO dbo.daily_stock_prices (
+            trade_date, stock_code, open_price, high_price,
+            low_price, close_price, volume, trading_value
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        rows
+    )
+
+    conn.commit()
+    print(f"SQL Server save successful: {len(rows)} rows")
+
+except Exception:
+    conn.rollback()
+    raise
+
+finally:
+    cursor.close()
+    conn.close()
