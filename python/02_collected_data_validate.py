@@ -1,196 +1,64 @@
-##기존의 연결 테스트 코드와 실제 데이터 수집 코드를 분리
 
-import os
-import requests
 import pandas as pd
-from dotenv import load_dotenv
+import pyodbc
 
-# Load environment variables from .env
-load_dotenv()
+# 1. SQL Server 연결 설정
+server = r"DESKTOP-29RVDTS\SQLEXPRESS"
+database = "Finance_dataflow"
+driver = "{ODBC Driver 17 for SQL Server}"
 
-# Read KIS API credentials
-APP_KEY = os.getenv("KIS_APP_KEY")
-APP_SECRET = os.getenv("KIS_APP_SECRET")
-
-# Read the API base URL
-BASE_URL = os.getenv(
-    "KIS_BASE_URL",
-    "https://openapi.koreainvestment.com:9443"
+connection_string = (
+    f"DRIVER={driver};"
+    f"SERVER={server};"
+    f"DATABASE={database};"
+    "Trusted_Connection=yes;"
 )
 
-# Check whether required settings exist
-if not APP_KEY:
-    raise ValueError("KIS_APP_KEY is missing from .env")
+# 2. SQL Server에서 저장된 데이터 읽기
+conn = pyodbc.connect(connection_string, timeout=5)
 
-if not APP_SECRET:
-    raise ValueError("KIS_APP_SECRET is missing from .env")
+try:
+    query = """
+        SELECT
+            trade_date,
+            stock_code,
+            open_price,
+            high_price,
+            low_price,
+            close_price,
+            volume,
+            trading_value
+        FROM dbo.daily_stock_prices
+        WHERE stock_code = ?
+        ORDER BY trade_date ASC
+    """
 
-print("Environment variables loaded successfully.")
+    df = pd.read_sql_query(query, conn, params=["005930"])
 
+finally:
+    conn.close()
 
-# Request an access token
-token_url = BASE_URL + "/oauth2/tokenP"
+print("Data loaded from SQL Server.")
+print("Number of records:", len(df))
 
-token_response = requests.post(
-    token_url,
-    headers={"content-type": "application/json"},
-    json={
-        "grant_type": "client_credentials",
-        "appkey": APP_KEY,
-        "appsecret": APP_SECRET
-    },
-    timeout=10
-)
-
-print("Token HTTP Status:", token_response.status_code)
-print("Token response:", token_response.text[:1000])
-
-token_response.raise_for_status()
-token_data = token_response.json()
-access_token = token_data["access_token"]
-
-print("Access token received.")
-
-# Request Samsung Electronics daily price data
-stock_code = "005930"
-
-url = (
-    BASE_URL
-    + "/uapi/domestic-stock/v1/quotations/"
-    + "inquire-daily-itemchartprice"
-)
-
-headers = {
-    "content-type": "application/json",
-    "authorization": f"Bearer {access_token}",
-    "appkey": APP_KEY,
-    "appsecret": APP_SECRET,
-    "tr_id": "FHKST03010100"
-}
-
-params = {
-    "FID_COND_MRKT_DIV_CODE": "J",
-    "FID_INPUT_ISCD": stock_code,
-    "FID_INPUT_DATE_1": "20261001",
-    "FID_INPUT_DATE_2": "20261007",
-    "FID_PERIOD_DIV_CODE": "D",
-    "FID_ORG_ADJ_PRC": "1"
-}
-
-response = requests.get(
-    url,
-    headers=headers,
-    params=params,
-    timeout=10
-)
-
-response.raise_for_status()
-data = response.json()
-
-# Check the API's business-level response
-if data.get("rt_cd") != "0":
-    raise RuntimeError(
-        f"KIS API error: {data.get('msg1', 'Unknown error')}"
-    )
-
-daily_data = data.get("output2", [])
-
-print("Stock data received.")
-print("Number of records:", len(daily_data))
-
-
-# Convert JSON records into a Pandas DataFrame
-df = pd.DataFrame(daily_data)
-
-if df.empty:
-    raise ValueError(
-        "No stock data returned. Check the date range and API response."
-    )
-
-# Rename API column names to readable English names
-column_mapping = {
-    "stck_bsop_date": "trade_date",
-    "stck_oprc": "open_price",
-    "stck_hgpr": "high_price",
-    "stck_lwpr": "low_price",
-    "stck_clpr": "close_price",
-    "acml_vol": "volume",
-    "acml_tr_pbmn": "trading_value"
-}
-
-df = df.rename(columns=column_mapping)
-
-# Convert the date column to a proper date type
-if "trade_date" in df.columns:
-    df["trade_date"] = pd.to_datetime(
-        df["trade_date"],
-        format="%Y%m%d",
-        errors="coerce"
-    )
-
-# Convert numeric columns from text to numbers
-numeric_columns = [
-    "open_price",
-    "high_price",
-    "low_price",
-    "close_price",
-    "volume",
-    "trading_value"
-]
-
-for column in numeric_columns:
-    if column in df.columns:
-        df[column] = pd.to_numeric(
-            df[column],
-            errors="coerce"
-        )
-
-# Show the result
-
-# Keep only the columns needed for analysis
-required_columns = [
-    "trade_date",
-    "open_price",
-    "high_price",
-    "low_price",
-    "close_price",
-    "volume",
-    "trading_value"
-]
-
-df = df[required_columns].copy()
-
-# Sort by date from oldest to newest
-df = df.sort_values("trade_date").reset_index(drop=True)
-
-# Add the stock ticker
-df["stock_code"] = stock_code
-
-# Display the final result
-print("\nCleaned DataFrame:")
-print(df)
-
-print("\nData types:")
-print(df.dtypes)
-
-# Check for missing values (결측값 확인)
+# 3. 결측값 확인
 missing_count = df.isnull().sum().sum()
+print("\nMissing values:", missing_count)
 
-if missing_count > 0:
-    print("Missing values found! (결측값 있음)")
-else:
-    print("No missing values. (결측값 없음)")
+# 4. 중복 거래일 확인
+duplicate_count = df["trade_date"].duplicated().sum()
+print("Duplicate trading dates:", duplicate_count)
 
-# Check for duplicate trading dates (중복일자 확인)
-print("\nDuplicate trading dates (중복일자):")
-print(df["trade_date"].duplicated().sum())
+# 5. 비정상 종가 확인
+invalid_close = (df["close_price"] <= 0).sum()
+print("Invalid closing prices:", invalid_close)
 
-# Check for invalid closing prices (주가가 0이하인 비정상 종가 확인)
-print("\nInvalid closing prices (주가가 0이하인날짜비정상 종가 확인:")
-print((df["close_price"] <= 0).sum())
-# Check for invalid trading volumes (거래량이 음수인 날 확인)
-print("\nInvalid trading volumes (거래량이 음수인 날 확인):")
-print((df["volume"] < 0).sum())
-# Check for invalid high-low price relationship (고가가 저가보다 낮은 비정상 날 확인)
-print("\nInvalid high-low price relationships (고가가 저가보다 낮은 비정상 날 확인):")
-print((df["high_price"] < df["low_price"]).sum())
+# 6. 음수 거래량 확인
+invalid_volume = (df["volume"] < 0).sum()
+print("Invalid trading volumes:", invalid_volume)
+
+# 7. 고가가 저가보다 낮은 행 확인
+invalid_high_low = (
+    df["high_price"] < df["low_price"]
+).sum()
+print("Invalid high-low relationships:", invalid_high_low)
