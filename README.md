@@ -36,10 +36,10 @@ STEP 03 GitHub Setup                  ✅  (Day-2)
 STEP 04 Python Environment            ✅
 STEP 05 API Authentication            ✅  (Day-3)
 STEP 06 Samsung Daily Price API TEST  ✅  (Day-4)
-STEP 07 Pandas Transformation         ✅  (Day-5)
+STEP 07 Pandas Transformation         ✅  (Day-5 / 9)
 STEP 08 Data Validation               ✅  (Day-6 / 7)
-STEP 09 SQL Server                    ✅  (Day-8)
-STEP 10 SQL Analysis                  ✅  (Day-8)
+STEP 09 SQL Server                    ✅  (Day-8 / 9)
+STEP 10 SQL Analysis                  ✅  (Day-8 / 9)
 STEP 11 Power BI                      ⬜
 STEP 12 Investment Insight            ⬜
 
@@ -241,3 +241,25 @@ Successfully connected Python to SQL Server, stored cleaned stock market data, a
 **Status:** Completed
 
 **Next Step:** Continue SQL analysis and prepare the dataset for Power BI visualization.
+
+### Day 09 — Data Pipeline Automation & SQL Analysis
+
+- Modified the data collection script to calculate the end date dynamically based on the system date.
+- Compared two data update strategies: skipping existing trading dates and updating existing records.
+- Selected the update strategy to refresh records for existing trading dates.
+- Created and tested a Windows `.bat` file to automate Python script execution.
+- Loaded collected and cleaned stock price data into SQL Server.
+- Validated stored data and analyzed daily price changes, daily returns, trading volume changes, and the 5-trading-day moving average.
+- Calculated the overall price return for the selected period.
+
+**Initial Finding**
+
+Samsung Electronics' closing price decreased from KRW 276,000 on October 1, 2026, to KRW 217,000 on October 16, 2026, resulting in a price return of -21.38%.
+
+*This is a preliminary result based on 10 trading-day observations and does not establish the broader semiconductor sector rotation hypothesis.*
+
+**Next Steps**
+- Expand data collection to semiconductor equipment, materials, and components stocks.
+- Analyze investor trading flows.
+- Compare performance before and after July 2026.
+
