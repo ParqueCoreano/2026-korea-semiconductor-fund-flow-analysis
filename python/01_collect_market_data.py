@@ -64,7 +64,10 @@ access_token = token_data["access_token"]
 print("Access token received.")
 
 # Request Samsung Electronics daily price data
-stock_code = "005930"
+stock_codes = ["005930", "000660"]
+
+start_date = "20260701"
+end_date = datetime.now().strftime("%Y%m%d")
 
 url = (
     BASE_URL
@@ -80,49 +83,10 @@ headers = {
     "tr_id": "FHKST03010100"
 }
 
-params = {
-    "FID_COND_MRKT_DIV_CODE": "J",
-    "FID_INPUT_ISCD": stock_code,
-    "FID_INPUT_DATE_1": "20261001",     
-    "FID_INPUT_DATE_2": datetime.now().strftime("%Y%m%d"),    
-    "FID_PERIOD_DIV_CODE": "D",
-    "FID_ORG_ADJ_PRC": "1"
-}
 
-#시작날짜
- #종료날짜 : 컴퓨터의 현재 날짜와 시간을 가져와서 YYYYMMDD 형식으로 변환
+all_stock_dfs = []
 
-response = requests.get(
-    url,
-    headers=headers,
-    params=params,
-    timeout=10
-)
-
-response.raise_for_status()
-data = response.json()
-
-# Check the API's business-level response
-if data.get("rt_cd") != "0":
-    raise RuntimeError(
-        f"KIS API error: {data.get('msg1', 'Unknown error')}"
-    )
-
-daily_data = data.get("output2", [])
-
-print("Stock data received.")
-print("Number of records:", len(daily_data))
-
-
-# Convert JSON records into a Pandas DataFrame
-df = pd.DataFrame(daily_data)
-
-if df.empty:
-    raise ValueError(
-        "No stock data returned. Check the date range and API response."
-    )
-
-# Rename API column names to readable English names
+# 컬럼명 변경 규칙
 column_mapping = {
     "stck_bsop_date": "trade_date",
     "stck_oprc": "open_price",
@@ -133,17 +97,6 @@ column_mapping = {
     "acml_tr_pbmn": "trading_value"
 }
 
-df = df.rename(columns=column_mapping)
-
-# Convert the date column to a proper date type
-if "trade_date" in df.columns:
-    df["trade_date"] = pd.to_datetime(
-        df["trade_date"],
-        format="%Y%m%d",
-        errors="coerce"
-    )
-
-# Convert numeric columns from text to numbers
 numeric_columns = [
     "open_price",
     "high_price",
@@ -153,44 +106,108 @@ numeric_columns = [
     "trading_value"
 ]
 
-for column in numeric_columns:
-    if column in df.columns:
+required_columns = ["trade_date", *numeric_columns]
+
+for stock_code in stock_codes:
+
+    # 1. 현재 종목의 API 요청 조건 설정
+    params = {
+        "FID_COND_MRKT_DIV_CODE": "J",
+        "FID_INPUT_ISCD": stock_code,
+        "FID_INPUT_DATE_1": start_date,
+        "FID_INPUT_DATE_2": end_date,
+        "FID_PERIOD_DIV_CODE": "D",
+        "FID_ORG_ADJ_PRC": "1"
+    }
+
+    # 2. API 요청
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params,
+        timeout=10
+    )
+    response.raise_for_status()
+    data = response.json()
+
+    # 3. API 응답 확인
+    if data.get("rt_cd") != "0":
+        raise RuntimeError(
+            f"KIS API error: {data.get('msg1', 'Unknown error')}"
+        )
+
+    # 4. DataFrame 생성
+    daily_data = data.get("output2", [])
+    df = pd.DataFrame(daily_data)
+
+    if df.empty:
+        print(f"No data returned for {stock_code}")
+        continue
+
+    # 5. 컬럼명 변경
+    df = df.rename(columns=column_mapping)
+
+    # 6. 날짜 및 숫자 자료형 변환
+    df["trade_date"] = pd.to_datetime(
+        df["trade_date"],
+        format="%Y%m%d",
+        errors="coerce"
+    )
+
+    for column in numeric_columns:
         df[column] = pd.to_numeric(
             df[column],
             errors="coerce"
         )
 
-# Show the result
+    # 7. 분석에 필요한 컬럼만 유지
+    df = df[required_columns].copy()
 
-# Keep only the columns needed for analysis
-required_columns = [
-    "trade_date",
-    "open_price",
-    "high_price",
-    "low_price",
-    "close_price",
-    "volume",
-    "trading_value"
-]
+    # 8. 종목 코드 추가
+    df["stock_code"] = stock_code
 
-df = df[required_columns].copy()
+    # 9. 정리된 데이터 보관
+    all_stock_dfs.append(df)
 
-# Sort by date from oldest to newest
-df = df.sort_values("trade_date").reset_index(drop=True)
+    print(f"{stock_code}: {len(df)} rows collected.")
 
-# Add the stock ticker
-df["stock_code"] = stock_code
 
-# Display the final result
+# 모든 종목 데이터 통합
+if not all_stock_dfs:
+    raise ValueError("수집된 데이터가 없습니다.")
+
+df = pd.concat(all_stock_dfs, ignore_index=True)
+
+df = df.sort_values(
+    ["stock_code", "trade_date"]
+).reset_index(drop=True)
+
+# 데이터 검증
+if df.duplicated(
+    subset=["stock_code", "trade_date"]
+).any():
+    raise ValueError("종목별 거래일 중복이 발견되었습니다.")
+
+if df["trade_date"].isna().any():
+    raise ValueError("거래일 변환에 실패한 데이터가 있습니다.")
+
+if df[numeric_columns].isna().any().any():
+    raise ValueError("숫자 컬럼에 변환 실패 데이터가 있습니다.")
+
+# 수집 결과 출력
+print("\nRows by stock:")
+print(df.groupby("stock_code").size())
+
+print("\nTotal rows:", len(df))
+
 print("\nCleaned DataFrame:")
-print(df)
+print(df.head())
 
 print("\nData types:")
 print(df.dtypes)
 
-print("\nTransformation completed.")
 
-# Save cleaned data to SQL Server
+# Save cleaned data to SQL Server (이 아래부터 기존 SQL Server 연결 및 저장 코드)
 import pyodbc
 
 server = r"DESKTOP-29RVDTS\SQLEXPRESS"
