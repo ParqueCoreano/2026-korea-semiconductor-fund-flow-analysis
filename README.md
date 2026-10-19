@@ -263,3 +263,63 @@ Samsung Electronics' closing price decreased from KRW 276,000 on October 1, 2026
 - Analyze investor trading flows.
 - Compare performance before and after July 2026.
 
+### Day 10 — Multi-Stock Data Collection & SQL Analysis
+
+**Status:** Multi-stock data collection completed; SQL analysis in progress.
+
+#### 1. Multi-Stock Data Collection
+
+- Extended the KIS API data collection pipeline from a single stock to multiple stocks.
+- Collected daily price data for:
+  - Samsung Electronics (`005930`)
+  - SK hynix (`000660`)
+- Configured the collection period to start on July 1, 2026, with a dynamically updated end date.
+- Reused a single access token for the collection process.
+- Collected 73 records per stock, for a total of 146 records.
+
+#### 2. Pandas Data Transformation
+
+- Renamed KIS API column names to standardized English names.
+- Converted trading dates to datetime format.
+- Converted price, volume, and trading value columns to numeric data types.
+- Added stock codes to distinguish records from different companies.
+- Combined stock-level DataFrames using `pd.concat()`.
+- Sorted the combined dataset by stock code and trading date.
+- Added validation checks for duplicate stock-date records, missing dates, and invalid numeric values.
+
+#### 3. SQL Server Data Loading
+
+- Saved the combined dataset to `dbo.daily_stock_prices`.
+- Implemented a delete-and-insert process for existing stock-date records to support data refreshes.
+- Successfully inserted 146 records into SQL Server.
+
+#### 4. SQL Analysis
+
+Prepared SQL queries to validate stored data and compare stock performance:
+
+- **Data validation:** Check row counts and collection date ranges by stock using `COUNT()`, `MIN()`, `MAX()`, and `GROUP BY`.
+- **Duplicate detection:** Identify duplicate stock-date combinations using `GROUP BY` and `HAVING`.
+- **Daily return analysis:** Calculate daily percentage returns using `LAG()` and a common table expression (CTE).
+- **Period performance comparison:** Compare the first and latest closing prices since July 1, 2026, using window functions and calculate period returns.
+
+*Note: SQL query execution and result validation should be confirmed before treating these analyses as completed.*
+
+#### 5. Skills Practiced
+
+- Python lists and loops
+- REST API data collection
+- Pandas DataFrame transformation and concatenation
+- Data quality validation
+- SQL Server data loading and refresh logic
+- SQL aggregation, CTEs, and window functions
+- Daily and period return calculations
+
+#### 6. Next Steps
+
+- Execute and validate the SQL analysis queries.
+- Verify stock codes, price units, and returned market data for accuracy.
+- Connect Power BI to SQL Server.
+- Build a dashboard comparing stock prices and returns.
+- Extend the analysis with investor trading flows and semiconductor sector data to investigate the capital rotation hypothesis.
+
+**Project Objective:** Investigate whether market momentum has shifted from memory semiconductors toward semiconductor equipment, materials, and components in Korea since July 2026.
